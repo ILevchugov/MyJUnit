@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'MyJUnit',
+                'Main-Class': 'ru.nsu.levchugov.myjunitimpl.Runner'
+    }
+    baseName = 'MyJUnit'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+}

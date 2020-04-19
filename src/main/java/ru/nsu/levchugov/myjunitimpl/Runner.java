@@ -12,13 +12,10 @@ public class Runner {
     private static final Logger logger = LoggerFactory.getLogger(Runner.class);
 
     public static void main(String[] args) {
-
         ArrayList<Thread> threads = new ArrayList<>();
         Queue<Class<?>> classes = new ArrayDeque<>();
 
-
         int threadsNum = 0;
-
         try {
             threadsNum = Integer.parseInt(args[0]);
             for (int i = 1; i < args.length; i++) {

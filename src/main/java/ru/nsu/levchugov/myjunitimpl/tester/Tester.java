@@ -38,6 +38,10 @@ public class Tester implements Runnable {
         Method[] methods;
         Object testedClassObject;
         Class<?> testedClass;
+
+        int passedNum = 0;
+        int failedNum = 0;
+
         synchronized (testedClasses) {
             while (testedClasses.isEmpty()) {
                 if (Thread.currentThread().isInterrupted()) {
@@ -61,24 +65,30 @@ public class Tester implements Runnable {
                 try {
                     method.invoke(testedClassObject);
                     if (expectedException == EmptyException.class) {
+                        passedNum++;
                         logger.info("test {} passed", method.getName());
                     } else {
+                        failedNum++;
                         logger.info("test {} failed", method.getName());
                     }
                 } catch (Exception e) {
                     Class<? extends Throwable> thrownException = e.getCause().getClass();
                     if (thrownException == TestAssertionError.class) { //checking on assertion error
                         logger.info("test {} failed", method.getName());
-                    } else if (!expectedException.isAssignableFrom(thrownException)) { //cheking on expected exception
+                        failedNum++;
+                    } else if (!expectedException.isAssignableFrom(thrownException)) { //checking on expected exception
                         logger.info("test {} failed", method.getName());
+                        failedNum++;
                     } else {
                         logger.info("test {} passed", method.getName());
+                        passedNum++;
                     }
                 }
             }
         }
         invokeAfterMethod(methods, testedClassObject);
-        logger.info("test for class {} ended", testedClass.getName());
+        logger.info("test for class {} ended" + System.lineSeparator() + "||{} tests passed|| ||{} tests failed||",
+                testedClass.getName(),passedNum, failedNum);
     }
 
     private void invokeBeforeMethod(Method[] methods, Object object) throws InvocationTargetException, IllegalAccessException {

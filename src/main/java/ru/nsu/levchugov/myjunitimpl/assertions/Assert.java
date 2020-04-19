@@ -11,7 +11,7 @@ public final class Assert {
     }
 
     public static void assertEquals(int a, int b) {
-        if (a!=b) {
+        if (a != b) {
             throw new TestAssertionError();
         }
     }

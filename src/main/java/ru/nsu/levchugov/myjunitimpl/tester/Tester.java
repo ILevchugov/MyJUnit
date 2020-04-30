@@ -18,6 +18,9 @@ public class Tester implements Runnable {
 
     private final Queue<Class<?>> testedClasses;
 
+    private int passedTestsNum = 0;
+    private int failedTestsNum = 0;
+
     public Tester(Queue<Class<?>> testedClasses) {
         this.testedClasses = testedClasses;
     }
@@ -39,9 +42,6 @@ public class Tester implements Runnable {
         Object testedClassObject;
         Class<?> testedClass;
 
-        int passedNum = 0;
-        int failedNum = 0;
-
         synchronized (testedClasses) {
             while (testedClasses.isEmpty()) {
                 if (Thread.currentThread().isInterrupted()) {
@@ -58,39 +58,50 @@ public class Tester implements Runnable {
 
         invokeBeforeMethod(methods, testedClassObject);
 
+        invokeTestMethods(methods, testedClassObject);
+
+        invokeAfterMethod(methods, testedClassObject);
+
+        logger.info("test for class {} ended" + System.lineSeparator() + "||{} tests passed|| ||{} tests failed||",
+                testedClass.getName(), passedTestsNum, failedTestsNum);
+    }
+
+    private void invokeTestMethods(Method[] methods, Object object) {
+
         for (Method method : methods) {
             if (method.isAnnotationPresent(Test.class)) {
                 Test test = method.getAnnotation(Test.class);
                 Class<?> expectedException = test.expectedException();
                 try {
-                    method.invoke(testedClassObject);
+                    method.invoke(object);
                     if (expectedException == EmptyException.class) {
-                        passedNum++;
+                        passedTestsNum++;
                         logger.info("test {} passed", method.getName());
                     } else {
-                        failedNum++;
+                        failedTestsNum++;
                         logger.info("test {} failed", method.getName());
                     }
                 } catch (Exception e) {
                     Class<? extends Throwable> thrownException = e.getCause().getClass();
                     if (thrownException == TestAssertionError.class) { //checking on assertion error
                         logger.info("test {} failed", method.getName());
-                        failedNum++;
+                        failedTestsNum++;
                     } else if (!expectedException.isAssignableFrom(thrownException)) { //checking on expected exception
                         logger.info("test {} failed", method.getName());
-                        failedNum++;
+                        failedTestsNum++;
                     } else {
                         logger.info("test {} passed", method.getName());
-                        passedNum++;
+                        passedTestsNum++;
                     }
                 }
             }
         }
-        invokeAfterMethod(methods, testedClassObject);
-        logger.info("test for class {} ended" + System.lineSeparator() + "||{} tests passed|| ||{} tests failed||",
-                testedClass.getName(),passedNum, failedNum);
+
     }
 
+    /**
+     * This method invoke the first @Before method that was found
+     */
     private void invokeBeforeMethod(Method[] methods, Object object) throws InvocationTargetException, IllegalAccessException {
         for (Method method : methods) {
             if (method.isAnnotationPresent(Before.class)) {
@@ -100,6 +111,9 @@ public class Tester implements Runnable {
         }
     }
 
+    /**
+     * This method invoke the first @After method that was found
+     */
     private void invokeAfterMethod(Method[] methods, Object object) throws InvocationTargetException, IllegalAccessException {
         for (Method method : methods) {
             if (method.isAnnotationPresent(After.class)) {

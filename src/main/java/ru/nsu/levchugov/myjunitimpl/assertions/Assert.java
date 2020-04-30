@@ -16,4 +16,9 @@ public final class Assert {
         }
     }
 
+    public static void assertEquals(double a, double b, double eps) {
+        if (Math.abs(a - b) > eps) {
+            throw new TestAssertionError();
+        }
+    }
 }

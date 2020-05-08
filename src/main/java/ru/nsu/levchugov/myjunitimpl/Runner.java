@@ -37,19 +37,14 @@ public class Runner {
             thread.start();
         }
 
-        try {
-            synchronized (Thread.currentThread()) {
-                while (!classes.isEmpty()) {
-                    Thread.currentThread().wait(100);
-                }
-                for (Thread t : threads) {
-                    t.interrupt();
-                }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                logger.info("непредвиденное что то", e);
+                Thread.currentThread().interrupt();
             }
-        } catch (Exception e) {
-            logger.error("Some error, i dont know why", e);
         }
-
     }
 
     private static void usage() {

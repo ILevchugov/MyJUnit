@@ -17,9 +17,15 @@ public class Test1 {
         a = 1.0 + 2.0 + 3.44444001;
     }
 
+    //should waiting 10 seconds and then passed
     @Test
     public void test1() {
-        assertEquals(4, 4);
+        try {
+            Thread.currentThread().sleep(10000);
+            assertEquals(4, 4);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

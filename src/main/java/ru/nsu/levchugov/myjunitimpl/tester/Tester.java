@@ -29,11 +29,15 @@ public class Tester implements Runnable {
 
     @Override
     public void run() {
-        while (!Thread.currentThread().isInterrupted() && !testedClasses.isEmpty()) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 Class<?> testedClass;
                 synchronized (testedClasses) {
-                    testedClass = testedClasses.poll();
+                    if (!testedClasses.isEmpty()) {
+                        testedClass = testedClasses.poll();
+                    } else {
+                        break;
+                    }
                 }
                 testClass(testedClass);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {

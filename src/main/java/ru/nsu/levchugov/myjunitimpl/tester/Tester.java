@@ -29,12 +29,13 @@ public class Tester implements Runnable {
 
     @Override
     public void run() {
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!Thread.currentThread().isInterrupted() && !testedClasses.isEmpty()) {
             try {
-                testClass();
-                if (testedClasses.isEmpty()) {
-                    break;
+                Class<?> testedClass;
+                synchronized (testedClasses) {
+                    testedClass = testedClasses.poll();
                 }
+                testClass(testedClass);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
                 logger.error("Testing class problems", e);
                 Thread.currentThread().interrupt();
@@ -42,18 +43,9 @@ public class Tester implements Runnable {
         }
     }
 
-    private void testClass() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    private void testClass(Class<?> testedClass) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         passedTestsNum = 0;
         failedTestsNum = 0;
-        Class<?> testedClass;
-
-        synchronized (testedClasses) {
-            if (testedClasses.isEmpty()) {
-                return;
-            } else {
-                testedClass = testedClasses.poll();
-            }
-        }
 
         Method[] methods = testedClass.getMethods();
         Object testedClassObject = testedClass.getConstructor().newInstance();

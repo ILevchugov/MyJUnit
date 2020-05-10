@@ -42,7 +42,7 @@ public class Tester implements Runnable {
                 testClass(testedClass);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
                 logger.error("Testing class problems", e);
-                Thread.currentThread().interrupt();
+                break;
             }
         }
     }

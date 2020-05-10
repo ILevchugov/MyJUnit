@@ -32,6 +32,9 @@ public class Tester implements Runnable {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 testClass();
+                if (testedClasses.isEmpty()) {
+                    break;
+                }
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
                 logger.error("Testing class problems", e);
                 Thread.currentThread().interrupt();
@@ -40,11 +43,12 @@ public class Tester implements Runnable {
     }
 
     private void testClass() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        passedTestsNum = 0;
+        failedTestsNum = 0;
         Class<?> testedClass;
 
         synchronized (testedClasses) {
             if (testedClasses.isEmpty()) {
-                Thread.currentThread().interrupt();
                 return;
             } else {
                 testedClass = testedClasses.poll();
@@ -88,25 +92,20 @@ public class Tester implements Runnable {
                         logger.info(FAILED_MESSAGE, method.getName());
                     }
                 } catch (Exception e) {
-                    processException(e, expectedException, method.getName());
+                    Class<? extends Throwable> thrownException = e.getCause().getClass();
+                    if (thrownException == TestAssertionError.class ||
+                            !expectedException.isAssignableFrom(thrownException)) {
+                        logger.info(FAILED_MESSAGE, method.getName());
+                        failedTestsNum++;
+                    } else {
+                        logger.info(PASSED_MESSAGE, method.getName());
+                        passedTestsNum++;
+                    }
                 }
             }
         }
 
     }
-
-    private void processException(Exception e, Class<?> expectedException, String methodName) {
-        Class<? extends Throwable> thrownException = e.getCause().getClass();
-        if (thrownException == TestAssertionError.class ||
-                !expectedException.isAssignableFrom(thrownException)) {
-            logger.info(FAILED_MESSAGE, methodName);
-            failedTestsNum++;
-        } else {
-            logger.info(PASSED_MESSAGE, methodName);
-            passedTestsNum++;
-        }
-    }
-
     /**
      * This method invoke the first @Before method that was found
      */

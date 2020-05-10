@@ -41,8 +41,7 @@ public class Runner {
             try {
                 thread.join();
             } catch (InterruptedException e) {
-                logger.info("непредвиденное что то", e);
-                Thread.currentThread().interrupt();
+                logger.info("Something wrong", e);
             }
         }
     }
